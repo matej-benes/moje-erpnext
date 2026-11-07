@@ -1,0 +1,40 @@
+databases:
+  - name: erpnext-db
+    databaseName: erpnext
+    user: erpnext_user
+    plan: free
+
+services:
+  # 1. Redis pro cache a fronty úloh
+  - type: web
+    name: erpnext-redis
+    env: docker
+    dockerfile: inline
+    dockerCommand: redis-server --appendonly yes
+    plan: free
+    disk:
+      name: redis-data
+      mountPath: /data
+      sizeGB: 1
+
+  # 2. Samotná webová aplikace ERPNext
+  - type: web
+    name: erpnext-web
+    env: docker
+    repo: https://github.com
+    dockerContext: .
+    dockerfilePath: images/production/Containerfile
+    plan: free
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: erpnext-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: erpnext-db
+          property: port
+      - key: REDIS_CACHE
+        fromService:
+          name: erpnext-redis
+          property: host
