@@ -5,19 +5,14 @@ databases:
     plan: free
 
 services:
-  # 1. Redis pro cache a fronty úloh
+  # 1. Oficiální Redis z Docker Hubu (bez inline chyb)
   - type: web
     name: erpnext-redis
-    env: docker
-    dockerfile: inline
-    dockerCommand: redis-server --appendonly yes
+    env: image
+    image: redis:7-alpine
     plan: free
-    disk:
-      name: redis-data
-      mountPath: /data
-      sizeGB: 1
 
-  # 2. Samotná webová aplikace ERPNext
+  # 2. Webová aplikace ERPNext
   - type: web
     name: erpnext-web
     env: docker
@@ -34,6 +29,8 @@ services:
         fromDatabase:
           name: erpnext-db
           property: port
+      - key: DB_TYPE
+        value: postgres
       - key: REDIS_CACHE
         fromService:
           name: erpnext-redis
