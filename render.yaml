@@ -5,11 +5,13 @@ databases:
     plan: free
 
 services:
-  # 1. Oficiální Redis z Docker Hubu (bez inline chyb)
+  # 1. Opravená konfigurace pro Redis z Docker Hubu
   - type: web
     name: erpnext-redis
     env: image
-    image: redis:7-alpine
+    image:
+      repo: redis
+      tag: 7-alpine
     plan: free
 
   # 2. Webová aplikace ERPNext
