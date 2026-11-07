@@ -1,0 +1,41 @@
+services:
+  # 1. Databáze MariaDB
+  - type: database
+    name: erpnext-db
+    databaseName: erpnext
+    user: erpnext_user
+    plan: free
+
+  # 2. Redis pro cache a fronty úloh
+  - type: web
+    name: erpnext-redis
+    env: docker
+    dockerfile: inline
+    dockerCommand: redis-server --appendonly yes
+    plan: free
+    disk:
+      name: redis-data
+      mountPath: /data
+      sizeGB: 1
+
+  # 3. Samotná webová aplikace ERPNext
+  - type: web
+    name: erpnext-web
+    env: docker
+    repo: https://github.com # Použije oficiální Docker sestavení
+    dockerContext: .
+    dockerfilePath: images/production/Containerfile
+    plan: free
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: erpnext-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: erpnext-db
+          property: port
+      - key: REDIS_CACHE
+        fromService:
+          name: erpnext-redis
+          property: host
