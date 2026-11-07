@@ -1,37 +1,28 @@
-databases:
-  - name: erpnext-db
-    databaseName: erpnext
-    user: erpnext_user
-    plan: free
 
 services:
-  # 1. Správný a otestovaný formát pro Redis z Docker Hubu na Renderu
-  - type: web
+  # 1. Redis – spravovaná instance Render
+  - type: keyvalue
     name: erpnext-redis
-    env: image
-    image: docker.io/library/redis:7-alpine
+    region: frankfurt
     plan: free
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow connections
 
   # 2. Webová aplikace ERPNext
   - type: web
     name: erpnext-web
-    env: docker
-    repo: https://github.com
+    runtime: docker
+    region: frankfurt
     dockerContext: .
     dockerfilePath: images/production/Containerfile
     plan: free
     envVars:
-      - key: DB_HOST
-        fromDatabase:
-          name: erpnext-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: erpnext-db
-          property: port
-      - key: DB_TYPE
-        value: postgres
       - key: REDIS_CACHE
         fromService:
           name: erpnext-redis
-          property: host
+          type: keyvalue
+          property: connectionString
+
+      - key: DB_TYPE
+        value: mariadb
